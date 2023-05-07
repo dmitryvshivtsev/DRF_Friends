@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users.apps.UsersConfig',
+    'rest_framework',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,20 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
+DJOSER = {
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': False,
+}
 
 ROOT_URLCONF = 'friends.urls'
 
@@ -77,9 +92,9 @@ WSGI_APPLICATION = 'friends.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_friends',
+        'NAME': 'friends_dj',
         'USER': 'dmitry_admin',
-        'PASSWORD': os.environ.get('PG_PASSWORD'),
+        'PASSWORD': os.getenv('PG_PASSWORD'),
         'HOST': '45.9.43.50',
         'PORT': '5432',
     }

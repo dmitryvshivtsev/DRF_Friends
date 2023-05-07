@@ -1,0 +1,331 @@
+openapi: 3.0.0
+info:
+  title: Django-сервис друзей. OpenAPI спецификация
+  version: "0.1"
+servers: 
+    - url: http://127.0.0.1:8000/api/v1/
+      description: server
+paths:
+  /friends/register:
+    get:
+      summary: Метод для получение страницы регистрации
+      tags:
+        - Auth
+      operationId: getRegisterUser
+      responses:
+        '200':
+          description: Успешный ответ со списком друзей
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Создание пользователя
+      tags:
+        - Auth
+      operationId: registerNewUser
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /friends/login:
+    get:
+      summary: Метод для получения страницы входа
+      tags:
+        - Auth
+      operationId: getLoginUser
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Вход в аккаунт
+      tags:
+        - Auth
+      operationId: loginUser
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: Успешный ответ со списком друзей
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/{username}:
+    get:
+      summary: Метод для просмотра профиля юзера
+      tags:
+        - Friends
+      operationId: getUser
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с профилем юзера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/{username}/append:
+    post:
+      summary: Метод для добавления юзера в друзья
+      tags:
+        - Friends
+      operationId: appendUser
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с добавлением друга
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/{username}/remove:
+    post:
+      summary: Метод для удаления юзера из друзей
+      tags:
+        - Friends
+      operationId: removeUser
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с удалением друга (отклонением)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/my:
+    get:
+      summary: Метод для получения своего профиля
+      tags:
+        - Friends
+      operationId: getMyProfile
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с профилем друга
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/my/outcoming:
+    get:
+      summary: Метод для получения исходящих заявок
+      tags:
+        - Friends
+      operationId: getOutcomingRequests
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с исходящими заявками
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/my/incoming:
+    get:
+      summary: Метод для получения входящих заявок
+      tags:
+        - Friends
+      operationId: getIncomingRequests
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ со входящими заявками
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/search:
+    post:
+      summary: Метод для поиска пользователя
+      tags:
+        - Search
+      operationId: findUsers
+      parameters: 
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: dmitry
+      responses:
+        '200':
+          description: Успешный ответ с профилем юзера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friend"
+        'default':
+          description: Всё остальное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Friend:
+      type: object
+      required:
+        - username
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: dmitry
+        status:
+          type: string
+          enum: 
+            - in_process
+            - denied
+            - ok
+          description: Статус заявки
+    Friends:
+      type: array
+      items:
+        $ref: "#/components/schemas/Friend"
+    User:
+      type: object
+      required:
+        - username
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: dmitry
+    Users:
+      type: array
+      items:
+        $ref: "#/components/schemas/User"
+    Error:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+          
+          
+    
+  
