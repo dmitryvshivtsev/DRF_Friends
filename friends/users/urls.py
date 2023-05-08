@@ -3,7 +3,8 @@ from django.urls import path, include, re_path
 from users.views import *
 
 
-app_name = 'friends'
 urlpatterns = [
-    path('user/create/', UserCreateView.as_view())
+    path('users/', UserList.as_view()),
+    path('users/<int:pk>/', UserDetail.as_view()),
+    path('users/<int:pk>/append', FriendAppend.as_view())
 ]
