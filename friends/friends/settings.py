@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
 ]
 
-AUTH_USER_MODEL = 'users.User'
+# AUTH_USER_MODEL = 'users.MyUser'
 LOGIN_REDIRECT_URL = 'api/v1/friends/users/'
 
 MIDDLEWARE = [
