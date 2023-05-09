@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
 ]
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/friends/login/'
+LOGIN_REDIRECT_URL = '/api/v1/friends/all_users/'
+LOGOUT_REDIRECT_URL = '/api/v1/api-auth/login/'
 AUTH_USER_MODEL = 'users.MyUser'
 
 MIDDLEWARE = [

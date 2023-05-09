@@ -1,92 +1,88 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from users.serializers import *
 from users.models import MyUser, FriendRequest
-from django.shortcuts import render, redirect
-from django.views import View
-from django.contrib.auth import login
-from django.contrib.auth.forms import authenticate
-from users.forms import UserCreationForm
-from django.http import JsonResponse
+from django.db.models import Q
 
 
-class Register(View):
-    """ Регистрация пользователя """
-    template_name = 'registration/register.html'
-
+class AllUsersView(APIView):
+    """ Список всех зарегестрированных пользователей """
     def get(self, request):
-        context = {
-            'form': UserCreationForm()
+        all_users = MyUser.objects.exclude(username=request.user)
+        all_users_serializer = MyUserSerializer(all_users, many=True)
+        data = {
+            'all_users': all_users_serializer.data
         }
+        return Response(data, status=status.HTTP_200_OK)
 
-        return render(request, self.template_name, context)
+
+class UserFriendsView(APIView):
+    """ Список друзей """
+    def get(self, request):
+        user = MyUser.objects.get(id=request.user.id)
+        friends = MyUser.objects.filter(Q(sender__recipient=user, recipient__sender=user)).distinct()
+        all_friends = MyUserSerializer(friends, many=True)
+        data = {
+            'all_friends': all_friends.data
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class IncomingRequestsView(APIView):
+    """ Просмотреть входящие заявки """
+    def get(self, request):
+        incoming = FriendRequest.objects.filter(recipient=request.user)
+        incoming_serializer = FriendRequestSerializer(incoming, many=True)
+        data = {
+            'incoming': incoming_serializer.data
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class OutcomingRequestsView(APIView):
+    """ Просмотреть исходящие заявки """
+    def get(self, request):
+        outcoming = FriendRequest.objects.filter(sender=request.user)
+        outcoming_serializer = FriendRequestSerializer(outcoming, many=True)
+        data = {
+            'outcoming': outcoming_serializer.data
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class SendFriendRequestView(APIView):
+    """ Отправить заявку в друзья """
+    serializer_class = SendRequestSerializer
 
     def post(self, request):
-        form = UserCreationForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('home')
-        context = {
-            'form': form
-        }
-        return render(request, self.template_name, context)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
 
 
-def home_page(request):
-    """ Домашнаяя страница """
-    all_users = MyUser.objects.exclude(username=request.user)
-    incoming = FriendRequest.objects.filter(recipient=request.user)
-    outcoming = FriendRequest.objects.filter(sender=request.user)
-    return render(request, 'home.html', {'all_users': all_users, 'incoming': incoming, 'outcoming': outcoming})
-
-
-def send_request(request, id):
-    """ Отправка запроса в друзья """
-    sender = request.user
-    recipient = MyUser.objects.get(id=id)
-    if is_mutual_request(sender, recipient):
-        frequest = FriendRequest.objects.get(id=sender)
-        sender.friends.add(frequest.sender)
-        frequest.sender.friends.add(sender)
-    else:
-        frequest = FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
-    return redirect('home')
-
-
-def is_mutual_request(sender, recipient):
-    try:
-        one = FriendRequest.objects.get(sender=sender, recipient=recipient)
-        two = FriendRequest.objects.get(sender=recipient, recipient=sender)
-        return True if one and two else False
-    except:
-        return False
-
-
-def accept_request(request, id):
+class AcceptFriendRequestView(APIView):
     """ Принять заявку в друзья """
-    frequest = FriendRequest.objects.get(id=id)
-    user1 = request.user
-    user2 = frequest.sender
-    user1.friends.add(user2)
-    user2.friends.add(user1)
-    return redirect('home')
+    def post(self, request, id):
+        friend_request = FriendRequest.objects.filter(sender_id=id).first()
+        if friend_request:
+            sender = friend_request.sender
+            recipient = friend_request.recipient
+            FriendRequest.objects.create(sender=recipient, recipient=sender)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-def reject_request(request, id):
-    """ Отклонить заявку в друзья """
-    frequest = FriendRequest.objects.get(id=id)
-    user1 = request.user
-    user2 = frequest.sender
-    user1.friends.remove(user2)
-    user2.friends.remove(user1)
-    return redirect('home')
+class RejectFriendRequestView(APIView):
+    """ Удалить из друзей или отклонить заявку """
+    def post(self, request, id):
+        friend_request = FriendRequest.objects.filter(sender_id=id).first()
+        if friend_request:
+            friend_request.delete()
+            FriendRequest.objects.filter(recipient_id=id).first().delete()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-def cancel_request(request, id):
-    """ Отменить отправленную заявку """
-    recipient = FriendRequest.objects.get(id=id)
-    if id == recipient.id:
-        frequest = FriendRequest.objects.filter(id=id).delete()
-    return redirect('home')

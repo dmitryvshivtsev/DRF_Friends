@@ -1,12 +1,14 @@
 from django.urls import include, path
-from users.views import Register, send_request, accept_request, reject_request, cancel_request
+from users.views import *
 
 
 urlpatterns = [
-    path('', include('django.contrib.auth.urls')),
-    path('register/', Register.as_view(template_name='registration/register.html'), name='register'),
-    path('add-friend/<int:id>/', send_request, name='add-friend'),
-    path('accept/<int:id>/', accept_request, name='accept'),
-    path('reject/<int:id>/', reject_request, name='reject'),
-    path('cancel_request/<int:id>/', cancel_request, name='cancel')
+    path('all-users/', AllUsersView.as_view()),
+    path('my-friends/', UserFriendsView.as_view()),
+    path('incoming/', IncomingRequestsView.as_view()),
+    path('outcoming/', OutcomingRequestsView.as_view()),
+    path('befriend/<int:id>/', SendFriendRequestView.as_view()),
+    path('accept/<int:id>/', AcceptFriendRequestView.as_view()),
+    path('reject/<int:id>/', RejectFriendRequestView.as_view()),
+    path('unfriend/<int:id>', RejectFriendRequestView.as_view()),
 ]
