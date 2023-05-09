@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from users.views import *
+from friends.swagger import urlpatterns as docs
 
 
 urlpatterns = [
@@ -25,3 +26,5 @@ urlpatterns = [
     path('api/v1/api-auth/', include('rest_framework.urls')),
     path('api/v1/friends/', include('users.urls')),
 ]
+
+urlpatterns += docs
