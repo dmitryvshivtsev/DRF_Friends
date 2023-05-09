@@ -1,6 +1,3 @@
-from django.urls import reverse_lazy
-# from users.forms import
-from django.views.generic.edit import CreateView, UpdateView
 from users.models import MyUser, FriendRequest
 from django.shortcuts import render, redirect
 from django.views import View
