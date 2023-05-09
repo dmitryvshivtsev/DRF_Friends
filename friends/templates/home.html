@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Главная страница</h2>
+    <hr>
+    {% if user.is_authenticated %}
+    <center>
+        <h1>Добро пожаловать, {{ user }}!</h1><br>
+        <h2>Все пользователи: </h2>
+            {% for user in all_users %}
+                {% if user not in user.friends.all %}
+                    <p><a href="{% url 'add-friend' user.id %}"> Добавить {{ user }} </a></p>
+                {% endif %}
+            {% endfor %}
+        <h2>Ваши друзья:</h2>
+            {% for user in user.friends.all %}
+                <p> {{ user }} </p>
+            {% endfor %}
+        <h2>Исходящие заявки: </h2><br>
+            {% for req in outcoming %}
+                {{ req.recipient }}
+                <a> Отменить заявку </a>
+            {% endfor %}
+        <h2>Входящие заявки: </h2><br>
+            {% for req in incoming %}
+                {{ req.sender }}
+                <a href="{% url 'accept' req.id %}"> Принять заявку </a>
+                <a href="{% url 'reject' req.id %}"> Отклонить заявку </a><br>
+            {% endfor %}
+    </center>
+    <a href="{% url 'logout' %}">Выйти</a>
+    {% else %}
+        <center>
+            <h1>Войдите в аккаунт или зарегистрируйтесь!</h1><br>
+        </center>
+        <a href="{% url 'login' %}">Войти</a> |
+        <a href="{% url 'register' %}">Еще нет аккаунта? Зарегестрируйтесь</a>
+    {% endif %}
+{% endblock %}

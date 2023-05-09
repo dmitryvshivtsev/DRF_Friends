@@ -1,13 +1,11 @@
-from django.contrib import admin
-from django.urls import path, include, re_path
-from users.views import *
+from django.urls import include, path
+from users.views import Register, send_request, accept_request, reject_request
 
 
 urlpatterns = [
-    path('users/', UserList.as_view()),
-    path('users/<int:pk>/', UserDetail.as_view()),
-    path('friends/requests/', FriendRequestList.as_view()),
-    path('friends/requests/<int:request_id>/accept/', AcceptFriendRequest.as_view()),
-    path('friends/requests/<int:request_id>/denied/', RejectFriendRequest.as_view()),
-    path('friends/send-request/<int:pk>/', SendFriendRequest.as_view()),
+    path('', include('django.contrib.auth.urls')),
+    path('register/', Register.as_view(template_name='registration/register.html'), name='register'),
+    path('add-friend/<int:id>/', send_request, name='add-friend'),
+    path('accept/<int:id>/', accept_request, name='accept'),
+    path('reject/<int:id>/', reject_request, name='reject'),
 ]
