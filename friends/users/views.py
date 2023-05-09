@@ -4,6 +4,7 @@ from django.views import View
 from django.contrib.auth import login
 from django.contrib.auth.forms import authenticate
 from users.forms import UserCreationForm
+from django.http import JsonResponse
 
 
 class Register(View):
@@ -45,15 +46,29 @@ def send_request(request, id):
     """ Отправка запроса в друзья """
     sender = request.user
     recipient = MyUser.objects.get(id=id)
-    frequest = FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
+    if is_mutual_request(sender, recipient):
+        frequest = FriendRequest.objects.get(id=sender)
+        sender.friends.add(frequest.sender)
+        frequest.sender.friends.add(sender)
+    else:
+        frequest = FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
     return redirect('home')
 
 
+def is_mutual_request(sender, recipient):
+    try:
+        one = FriendRequest.objects.get(sender=sender, recipient=recipient)
+        two = FriendRequest.objects.get(sender=recipient, recipient=sender)
+        return True if one and two else False
+    except:
+        return False
+
+
 def accept_request(request, id):
-    """ Принять зявку в друзья """
-    frequset = FriendRequest.objects.get(id=id)
+    """ Принять заявку в друзья """
+    frequest = FriendRequest.objects.get(id=id)
     user1 = request.user
-    user2 = frequset.sender
+    user2 = frequest.sender
     user1.friends.add(user2)
     user2.friends.add(user1)
     return redirect('home')
@@ -66,4 +81,12 @@ def reject_request(request, id):
     user2 = frequest.sender
     user1.friends.remove(user2)
     user2.friends.remove(user1)
+    return redirect('home')
+
+
+def cancel_request(request, id):
+    """ Отменить отправленную заявку """
+    recipient = FriendRequest.objects.get(id=id)
+    if id == recipient.id:
+        frequest = FriendRequest.objects.filter(id=id).delete()
     return redirect('home')

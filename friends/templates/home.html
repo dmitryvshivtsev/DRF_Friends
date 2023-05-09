@@ -8,24 +8,30 @@
         <h1>Добро пожаловать, {{ user }}!</h1><br>
         <h2>Все пользователи: </h2>
             {% for user in all_users %}
-                {% if user not in user.friends.all %}
+                {% if user in user.friends.all %}
+                    {{ continue }}
+                {% else %}
                     <p><a href="{% url 'add-friend' user.id %}"> Добавить {{ user }} </a></p>
                 {% endif %}
             {% endfor %}
-        <h2>Ваши друзья:</h2>
+        <h2>Ваши друзья:</h2><br>
             {% for user in user.friends.all %}
                 <p> {{ user }} </p>
             {% endfor %}
         <h2>Исходящие заявки: </h2><br>
             {% for req in outcoming %}
                 {{ req.recipient }}
-                <a> Отменить заявку </a>
+                <a href="{% url 'cancel' req.id %}"> Отменить заявку </a><br>
             {% endfor %}
         <h2>Входящие заявки: </h2><br>
             {% for req in incoming %}
-                {{ req.sender }}
-                <a href="{% url 'accept' req.id %}"> Принять заявку </a>
-                <a href="{% url 'reject' req.id %}"> Отклонить заявку </a><br>
+                {% if user in user.friends.all %}
+                    {{ continue }}
+                {% else %}
+                    {{ req.sender }}
+                    <a href="{% url 'accept' req.id %}"> Принять заявку </a>
+                    <a href="{% url 'reject' req.id %}"> Отклонить заявку </a><br>
+                {% endif %}
             {% endfor %}
     </center>
     <a href="{% url 'logout' %}">Выйти</a>
