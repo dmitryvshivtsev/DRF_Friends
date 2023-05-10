@@ -27,12 +27,3 @@ class UsersAPITestCase(APITestCase):
         self.client.force_authenticate(user4)
         response = self.client.get('http://127.0.0.1:8000/api/v1/friends/status/5/')
         self.assertEqual(response.data, {'id': 5, 'username': 'test_user5', 'status': 'Нет ничего'})
-
-    # def test_befriend(self):
-    #     user6 = MyUser.objects.create_user('test_user6', 'Pas$w0rd')
-    #     client = APIClient()
-    #     client.force_authenticate(user6)
-        # response = self.client.post('http://127.0.0.1:8000/api/v1/friends/befriend/5/', {'recipient_id': 5}, format=json)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # response = self.client.get('http://127.0.0.1:8000/api/v1/friends/status/5/')
-        # self.assertEqual(response.data, {'id': 5, 'username': 'test_user5', 'status': 'Исходящая заявка'})
