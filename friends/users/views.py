@@ -62,7 +62,7 @@ class SendFriendRequestView(APIView):
 
     def post(self, request, id):
         # отправляем заявку в друзья
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(data={"recipient_id": id}, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)
