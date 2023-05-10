@@ -1,331 +1,627 @@
 openapi: 3.0.0
 info:
-  title: Django-сервис друзей. OpenAPI спецификация
-  version: "0.1"
-servers: 
-    - url: http://127.0.0.1:8000/api/v1/
-      description: server
+  title: Friends API
+  description: docs
+  version: v1
+host: 127.0.0.1:8000
+schemes:
+- http
+basePath: "/api/v1"
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+- Basic: []
 paths:
-  /friends/register:
+  "/auth/users/":
     get:
-      summary: Метод для получение страницы регистрации
-      tags:
-        - Auth
-      operationId: getRegisterUser
+      operationId: auth_users_list
+      description: ''
+      parameters: []
       responses:
         '200':
-          description: Успешный ответ со списком друзей
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Users"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-    post:
-      summary: Создание пользователя
+          description: ''
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/User"
       tags:
-        - Auth
-      operationId: registerNewUser
-      requestBody:
+      - auth
+    post:
+      operationId: auth_users_create
+      description: ''
+      parameters:
+      - name: data
+        in: body
         required: true
-        content: 
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
+        schema:
+          "$ref": "#/definitions/UserCreate"
       responses:
-        '200':
-          description: Успешный ответ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Users"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /friends/login:
-    get:
-      summary: Метод для получения страницы входа
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/UserCreate"
       tags:
-        - Auth
-      operationId: getLoginUser
-      responses:
-        '200':
-          description: Успешный ответ
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Users"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+      - auth
+    parameters: []
+  "/auth/users/activation/":
     post:
-      summary: Вход в аккаунт
-      tags:
-        - Auth
-      operationId: loginUser
-      requestBody:
+      operationId: auth_users_activation
+      description: ''
+      parameters:
+      - name: data
+        in: body
         required: true
-        content: 
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
+        schema:
+          "$ref": "#/definitions/Activation"
       responses:
-        '200':
-          description: Успешный ответ со списком друзей
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Users"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/{username}:
-    get:
-      summary: Метод для просмотра профиля юзера
-      tags:
-        - Friends
-      operationId: getUser
-      parameters: 
-        - name: username
-          in: path
-          required: true
+        '201':
+          description: ''
           schema:
-            type: string
-          example: dmitry
+            "$ref": "#/definitions/Activation"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/me/":
+    get:
+      operationId: auth_users_me_read
+      description: ''
+      parameters: []
       responses:
         '200':
-          description: Успешный ответ с профилем юзера
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/{username}/append:
+          description: ''
+          schema:
+            type: array
+            items:
+              "$ref": "#/definitions/User"
+      tags:
+      - auth
+    put:
+      operationId: auth_users_me_update
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/User"
+      responses:
+        '200':
+          description: ''
+          schema:
+            "$ref": "#/definitions/User"
+      tags:
+      - auth
+    patch:
+      operationId: auth_users_me_partial_update
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/User"
+      responses:
+        '200':
+          description: ''
+          schema:
+            "$ref": "#/definitions/User"
+      tags:
+      - auth
+    delete:
+      operationId: auth_users_me_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/resend_activation/":
     post:
-      summary: Метод для добавления юзера в друзья
-      tags:
-        - Friends
-      operationId: appendUser
-      parameters: 
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-          example: dmitry
+      operationId: auth_users_resend_activation
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SendEmailReset"
       responses:
-        '200':
-          description: Успешный ответ с добавлением друга
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/{username}/remove:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/SendEmailReset"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/reset_password/":
     post:
-      summary: Метод для удаления юзера из друзей
-      tags:
-        - Friends
-      operationId: removeUser
-      parameters: 
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-          example: dmitry
+      operationId: auth_users_reset_password
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SendEmailReset"
       responses:
-        '200':
-          description: Успешный ответ с удалением друга (отклонением)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/my:
-    get:
-      summary: Метод для получения своего профиля
-      tags:
-        - Friends
-      operationId: getMyProfile
-      parameters: 
-        - name: username
-          in: path
-          required: true
+        '201':
+          description: ''
           schema:
-            type: string
-          example: dmitry
-      responses:
-        '200':
-          description: Успешный ответ с профилем друга
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/my/outcoming:
-    get:
-      summary: Метод для получения исходящих заявок
+            "$ref": "#/definitions/SendEmailReset"
       tags:
-        - Friends
-      operationId: getOutcomingRequests
-      parameters: 
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-          example: dmitry
-      responses:
-        '200':
-          description: Успешный ответ с исходящими заявками
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/my/incoming:
-    get:
-      summary: Метод для получения входящих заявок
-      tags:
-        - Friends
-      operationId: getIncomingRequests
-      parameters: 
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-          example: dmitry
-      responses:
-        '200':
-          description: Успешный ответ со входящими заявками
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/search:
+      - auth
+    parameters: []
+  "/auth/users/reset_password_confirm/":
     post:
-      summary: Метод для поиска пользователя
-      tags:
-        - Search
-      operationId: findUsers
-      parameters: 
-        - name: username
-          in: path
-          required: true
+      operationId: auth_users_reset_password_confirm
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/PasswordResetConfirm"
+      responses:
+        '201':
+          description: ''
           schema:
-            type: string
-          example: dmitry
+            "$ref": "#/definitions/PasswordResetConfirm"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/reset_username/":
+    post:
+      operationId: auth_users_reset_username
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SendEmailReset"
+      responses:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/SendEmailReset"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/reset_username_confirm/":
+    post:
+      operationId: auth_users_reset_username_confirm
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/UsernameResetConfirm"
+      responses:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/UsernameResetConfirm"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/set_password/":
+    post:
+      operationId: auth_users_set_password
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SetPassword"
+      responses:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/SetPassword"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/set_username/":
+    post:
+      operationId: auth_users_set_username
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/SetUsername"
+      responses:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/SetUsername"
+      tags:
+      - auth
+    parameters: []
+  "/auth/users/{id}/":
+    get:
+      operationId: auth_users_read
+      description: ''
+      parameters: []
       responses:
         '200':
-          description: Успешный ответ с профилем юзера
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Friend"
-        'default':
-          description: Всё остальное
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-components:
-  schemas:
-    Friend:
-      type: object
-      required:
-        - username
-      properties:
-        user_id:
-          type: integer
-          example: 1
-        username:
-          type: string
-          example: dmitry
-        status:
-          type: string
-          enum: 
-            - in_process
-            - denied
-            - ok
-          description: Статус заявки
-    Friends:
-      type: array
-      items:
-        $ref: "#/components/schemas/Friend"
-    User:
-      type: object
-      required:
-        - username
-      properties:
-        user_id:
-          type: integer
-          example: 1
-        username:
-          type: string
-          example: dmitry
-    Users:
-      type: array
-      items:
-        $ref: "#/components/schemas/User"
-    Error:
-      type: object
-      required:
-        - code
-        - name
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-          
-          
-    
-  
+          description: ''
+          schema:
+            "$ref": "#/definitions/User"
+      tags:
+      - auth
+    put:
+      operationId: auth_users_update
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/User"
+      responses:
+        '200':
+          description: ''
+          schema:
+            "$ref": "#/definitions/User"
+      tags:
+      - auth
+    patch:
+      operationId: auth_users_partial_update
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/User"
+      responses:
+        '200':
+          description: ''
+          schema:
+            "$ref": "#/definitions/User"
+      tags:
+      - auth
+    delete:
+      operationId: auth_users_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - auth
+    parameters:
+    - name: id
+      in: path
+      description: A unique integer value identifying this пользователь.
+      required: true
+      type: integer
+  "/authtoken/login/":
+    post:
+      operationId: authtoken_login_create
+      description: Use this endpoint to obtain user authentication token.
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          "$ref": "#/definitions/TokenCreate"
+      responses:
+        '201':
+          description: ''
+          schema:
+            "$ref": "#/definitions/TokenCreate"
+      tags:
+      - authtoken
+    parameters: []
+  "/authtoken/logout/":
+    post:
+      operationId: authtoken_logout_create
+      description: Use this endpoint to logout user (remove user authentication token).
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - authtoken
+    parameters: []
+  "/friends/accept/{id}/":
+    post:
+      operationId: friends_accept_create
+      description: Принять заявку в друзья
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - friends
+    parameters:
+    - name: id
+      in: path
+      required: true
+      type: string
+  "/friends/all-users/":
+    get:
+      operationId: friends_all-users_list
+      description: Список всех зарегестрированных пользователей
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - friends
+    parameters: []
+  "/friends/befriend/{id}/":
+    post:
+      operationId: friends_befriend_create
+      description: Отправить заявку в друзья
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - friends
+    parameters:
+    - name: id
+      in: path
+      required: true
+      type: string
+  "/friends/incoming/":
+    get:
+      operationId: friends_incoming_list
+      description: Просмотреть входящие заявки
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - friends
+    parameters: []
+  "/friends/my-friends/":
+    get:
+      operationId: friends_my-friends_list
+      description: Список друзей
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - friends
+    parameters: []
+  "/friends/outcoming/":
+    get:
+      operationId: friends_outcoming_list
+      description: Просмотреть исходящие заявки
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - friends
+    parameters: []
+  "/friends/reject/{id}/":
+    post:
+      operationId: friends_reject_create
+      description: Удалить из друзей или отклонить заявку
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - friends
+    parameters:
+    - name: id
+      in: path
+      required: true
+      type: string
+  "/friends/status/{id}/":
+    get:
+      operationId: friends_status_read
+      description: Получить статус дружбы
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            "$ref": "#/definitions/FriendStatus"
+      tags:
+      - friends
+    parameters:
+    - name: id
+      in: path
+      description: A unique integer value identifying this пользователь.
+      required: true
+      type: integer
+  "/friends/unfriend/{id}/":
+    post:
+      operationId: friends_unfriend_create
+      description: Удалить из друзей или отклонить заявку
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - friends
+    parameters:
+    - name: id
+      in: path
+      required: true
+      type: string
+definitions:
+  User:
+    type: object
+    properties:
+      email:
+        title: Адрес электронной почты
+        type: string
+        format: email
+        maxLength: 254
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      username:
+        title: Имя пользователя
+        description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+          и символы @/./+/-/_.
+        type: string
+        readOnly: true
+        minLength: 1
+  UserCreate:
+    required:
+    - username
+    - password
+    type: object
+    properties:
+      email:
+        title: Адрес электронной почты
+        type: string
+        format: email
+        maxLength: 254
+      username:
+        title: Имя пользователя
+        description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+          и символы @/./+/-/_.
+        type: string
+        pattern: "^[\\w.@+-]+$"
+        maxLength: 150
+        minLength: 1
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      password:
+        title: Password
+        type: string
+        minLength: 1
+  Activation:
+    required:
+    - uid
+    - token
+    type: object
+    properties:
+      uid:
+        title: Uid
+        type: string
+        minLength: 1
+      token:
+        title: Token
+        type: string
+        minLength: 1
+  SendEmailReset:
+    required:
+    - email
+    type: object
+    properties:
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
+  PasswordResetConfirm:
+    required:
+    - uid
+    - token
+    - new_password
+    type: object
+    properties:
+      uid:
+        title: Uid
+        type: string
+        minLength: 1
+      token:
+        title: Token
+        type: string
+        minLength: 1
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+  UsernameResetConfirm:
+    required:
+    - new_username
+    type: object
+    properties:
+      new_username:
+        title: Имя пользователя
+        description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+          и символы @/./+/-/_.
+        type: string
+        pattern: "^[\\w.@+-]+$"
+        maxLength: 150
+        minLength: 1
+  SetPassword:
+    required:
+    - new_password
+    - current_password
+    type: object
+    properties:
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      current_password:
+        title: Current password
+        type: string
+        minLength: 1
+  SetUsername:
+    required:
+    - current_password
+    - new_username
+    type: object
+    properties:
+      current_password:
+        title: Current password
+        type: string
+        minLength: 1
+      new_username:
+        title: Имя пользователя
+        description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+          и символы @/./+/-/_.
+        type: string
+        pattern: "^[\\w.@+-]+$"
+        maxLength: 150
+        minLength: 1
+  TokenCreate:
+    type: object
+    properties:
+      password:
+        title: Password
+        type: string
+        minLength: 1
+      username:
+        title: Username
+        type: string
+        minLength: 1
+  FriendStatus:
+    required:
+    - username
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      username:
+        title: Имя пользователя
+        description: Обязательное поле. Не более 150 символов. Только буквы, цифры
+          и символы @/./+/-/_.
+        type: string
+        pattern: "^[\\w.@+-]+$"
+        maxLength: 150
+        minLength: 1
+      status:
+        title: Status
+        type: string
+        readOnly: true
