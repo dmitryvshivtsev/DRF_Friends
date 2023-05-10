@@ -31,3 +31,25 @@ class SendRequestSerializer(serializers.Serializer):
         frequest = FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
         return frequest
 
+
+class FriendStatusSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MyUser
+        fields = ('id', 'username', 'status')
+
+    def get_status(self, profile_user):
+        user = self.context['request'].user
+        if user == profile_user:
+            return "Это ваша страница"
+        elif user.sender.filter(recipient=profile_user).exists() \
+                and user.recipient.filter(sender=profile_user).exists():
+            return "Уже друзья"
+        elif user.sender.filter(recipient=profile_user).exists():
+            return "Исходящая заявка"
+        elif user.recipient.filter(sender=profile_user).exists():
+            return "Входящая заявка"
+        else:
+            return "Нет ничего"
+
