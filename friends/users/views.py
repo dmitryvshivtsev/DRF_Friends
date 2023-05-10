@@ -77,7 +77,7 @@ class AcceptFriendRequestView(APIView):
             # добавляем в базу взаимную заявку, если принимаем запрос
             sender = friend_request.sender
             recipient = friend_request.recipient
-            FriendRequest.objects.create(sender=recipient, recipient=sender)
+            FriendRequest.objects.get_or_create(sender=recipient, recipient=sender)
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)

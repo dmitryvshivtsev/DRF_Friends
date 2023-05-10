@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
 ]
 
-LOGIN_REDIRECT_URL = '/api/v1/friends/all_users/'
+LOGIN_REDIRECT_URL = '/api/v1/friends/all-users/'
 LOGOUT_REDIRECT_URL = '/api/v1/api-auth/login/'
 AUTH_USER_MODEL = 'users.MyUser'
 
