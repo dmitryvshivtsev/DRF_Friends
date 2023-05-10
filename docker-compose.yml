@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+   web:
+       build: .
+       command: ./manage.py runserver 45.9.43.50:8000
+       ports:
+           - 8000:80
