@@ -15,5 +15,6 @@ class FriendRequest(models.Model):
 
 
 class Friends(models.Model):
+    """ Модель хранящая информацию о друзьях """
     user_id_1 = models.ForeignKey(MyUser, related_name="user_id_1", on_delete=models.CASCADE)
     user_id_2 = models.ForeignKey(MyUser, related_name="user_id_2", on_delete=models.CASCADE)

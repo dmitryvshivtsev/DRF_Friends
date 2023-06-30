@@ -23,8 +23,8 @@ class UserFriendsView(APIView):
     """ Список друзей """
 
     def get(self, request):
-        user = MyUser.objects.get(id=request.user.id)
-        friends = MyUser.objects.filter(Q(sender__recipient=user, recipient__sender=user)).distinct()
+        user_id = MyUser.objects.get(id=request.user.id).id
+        friends = MyUser.objects.filter(Q(user_id_1=user_id) | Q(user_id_2=user_id))
         all_friends = MyUserSerializer(friends, many=True)
         data = {
             'all_friends': all_friends.data
@@ -36,7 +36,7 @@ class IncomingRequestsView(APIView):
     """ Просмотреть входящие заявки """
 
     def get(self, request):
-        incoming = FriendRequest.objects.filter(recipient=request.user)
+        incoming = FriendRequest.objects.filter(recipient=request.user.id)
         incoming_serializer = FriendRequestSerializer(incoming, many=True)
         data = {
             'incoming': incoming_serializer.data
@@ -58,6 +58,7 @@ class OutcomingRequestsView(APIView):
 
 class SendFriendRequestView(APIView):
     """ Отправить заявку в друзья """
+
     serializer_class = SendRequestSerializer
 
     def post(self, request, id):
@@ -84,7 +85,7 @@ class AcceptFriendRequestView(APIView):
 
 
 class RejectFriendRequestView(APIView):
-    """ Удалить из друзей или отклонить заявку """
+    """ Отклонить заявку """
 
     def post(self, request, id):
         friend_request = FriendRequest.objects.filter(sender_id=id).first()
@@ -95,6 +96,13 @@ class RejectFriendRequestView(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        pass
+
+
+class RemoveFriendView(APIView):
+    pass
 
 
 class FriendStatusView(generics.RetrieveAPIView):
