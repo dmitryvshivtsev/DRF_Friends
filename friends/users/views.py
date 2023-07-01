@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from users.serializers import *
-from users.models import MyUser, FriendRequest
+from users.models import MyUser, FriendRequest, Friends
 from django.db.models import Q
 
 
@@ -24,7 +24,8 @@ class UserFriendsView(APIView):
 
     def get(self, request):
         user_id = MyUser.objects.get(id=request.user.id).id
-        friends = MyUser.objects.filter(Q(user_id_1=user_id) | Q(user_id_2=user_id))
+        print(user_id)
+        friends = MyUser.objects.filter(Q(user_id_1__user_id_2=user_id) | Q(user_id_2__user_id_1=user_id))
         all_friends = MyUserSerializer(friends, many=True)
         data = {
             'all_friends': all_friends.data
@@ -59,9 +60,10 @@ class OutcomingRequestsView(APIView):
 class SendFriendRequestView(APIView):
     """ Отправить заявку в друзья """
 
-    def post(self, request, pk):
+    def post(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
         data = {
-            'recipient_id': pk,
+            'recipient_id': pk
         }
         context = {
             'sender_name': request.user
@@ -75,44 +77,57 @@ class SendFriendRequestView(APIView):
 class AcceptFriendRequestView(APIView):
     """ Принять заявку в друзья """
 
-    def post(self, request, id):
-        friend_request = FriendRequest.objects.filter(sender_id=id).first()
+    def post(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        friend_request = FriendRequest.objects.filter(sender_id=pk).first()
         if friend_request:
-            # добавляем в базу взаимную заявку, если принимаем запрос
+            # create new entry in the Friends database
             sender = friend_request.sender
             recipient = friend_request.recipient
-            FriendRequest.objects.get_or_create(sender=recipient, recipient=sender)
+            Friends.objects.create(user_id_1=sender, user_id_2=recipient)
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class RejectFriendRequestView(APIView):
-    """ Отклонить заявку """
+    """ Отменить отправленную заявку """
 
-    def post(self, request, id):
-        friend_request = FriendRequest.objects.filter(sender_id=id).first()
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        friend_request = FriendRequest.objects.filter(sender_id=pk).first()
         if friend_request:
             # удаляем записи из базы
             friend_request.delete()
-            FriendRequest.objects.filter(recipient_id=id).first().delete()
+            FriendRequest.objects.filter(recipient_id=pk).first().delete()
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-    def delete(self, request, id):
-        pass
-
 
 class RemoveFriendView(APIView):
-    pass
+    """ Удалить юзера из друзей """
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        user_id_1 = MyUser.objects.get(id=request.user.id).id
+        user_id_2 = pk
+        remove_entry = Friends.objects.filter(
+            (
+                    Q(user_id_1=user_id_1) | Q(user_id_1=user_id_2)
+            ) & (
+                    Q(user_id_2=user_id_1) | Q(user_id_2=user_id_2)
+            )
+        )
+        remove_entry.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 class FriendStatusView(generics.RetrieveAPIView):
     """ Получить статус дружбы """
     queryset = MyUser.objects.all()
     serializer_class = FriendStatusSerializer
-    lookup_field = 'id'  # получаем инфо по id объекта
+    lookup_field = 'pk'  # получаем инфо по id объекта
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
