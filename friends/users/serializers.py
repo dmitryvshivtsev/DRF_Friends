@@ -24,10 +24,9 @@ class SendRequestSerializer(serializers.Serializer):
     recipient_id = serializers.IntegerField()
 
     def create(self, validated_data):
-        sender = self.context['request'].user
-        recipient = MyUser.objects.get(id=validated_data['recipient_id'])
-        frequest = FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
-        return frequest
+        sender = self.context['sender_name']  # get id of user who send request
+        recipient = MyUser.objects.get(id=self.data['recipient_id'])
+        return FriendRequest.objects.get_or_create(sender=sender, recipient=recipient)
 
 
 class FriendStatusSerializer(serializers.ModelSerializer):
