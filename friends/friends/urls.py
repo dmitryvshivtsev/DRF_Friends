@@ -21,11 +21,11 @@ from friends.swagger import urlpatterns as docs
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('djoser.urls')),
-    re_path(r'^api/v1/auth', include('djoser.urls.authtoken')),
-    path('api/v1/api-auth/', include('rest_framework.urls')),
-    path('api/v1/friends/', include('users.urls')),
+    path("admin/", admin.site.urls),
+    path("api/v1/auth/", include("djoser.urls")),
+    re_path(r"^api/v1/auth", include("djoser.urls.authtoken")),
+    path("api/v1/api-auth/", include("rest_framework.urls")),
+    path("api/v1/friends/", include("users.urls")),
 ]
 
 urlpatterns += docs

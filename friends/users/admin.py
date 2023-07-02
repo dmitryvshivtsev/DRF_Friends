@@ -7,6 +7,5 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(UserAdmin):
-
     def __str__(self):
-        return f'{self.username} | {self.first_name}'
+        return f"{self.username} | {self.first_name}"
