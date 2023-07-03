@@ -7,14 +7,11 @@ from users.models import MyUser, FriendRequest, Friends
 from django.db.models import Q
 
 
-class AllUsersView(APIView):
+class AllUsersView(generics.ListAPIView):
     """Список всех зарегестрированных пользователей"""
 
-    def get(self, request):
-        all_users = MyUser.objects.exclude(username=request.user)
-        all_users_serializer = MyUserSerializer(all_users, many=True)
-        data = {"all_users": all_users_serializer.data}
-        return Response(data, status=status.HTTP_200_OK)
+    queryset = MyUser.objects.all()
+    serializer_class = MyUserSerializer
 
 
 class UserFriendsView(APIView):
@@ -55,9 +52,8 @@ class SendFriendRequestView(APIView):
 
     def post(self, request, *args, **kwargs):
         pk = kwargs["pk"]
-        data = {"recipient_id": pk}
-        context = {"sender_name": request.user}
-        serializer = SendRequestSerializer(data=data, context=context)
+        data = {"sender_id": request.user.id, "recipient_id": pk}
+        serializer = FriendRequestSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)
@@ -105,18 +101,14 @@ class RemoveFriendView(APIView):
             & (Q(user_id_2=sender) | Q(user_id_2=recipient))
         )
         remove_entry.delete()
-        # data = {"recipient_id": pk}
-        # context = {"sender_name": sender}
-        # serializer = SendRequestSerializer(data=data, context=context)
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
-        FriendRequest.objects.get_or_create(
-            sender_id=recipient, recipient_id=sender
-        )
+        data = {"sender_id": recipient, "recipient_id": sender}
+        serializer = FriendRequestSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(status=status.HTTP_200_OK)
 
 
-class FriendStatusView(generics.RetrieveAPIView):
+class FriendStatusView(generics.RetrieveUpdateDestroyAPIView):
     """Получить статус дружбы"""
 
     queryset = MyUser.objects.all()
