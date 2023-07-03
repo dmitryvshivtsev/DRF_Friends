@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
@@ -75,7 +76,7 @@ class AcceptFriendRequestView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class RejectFriendRequestView(APIView):
+class CancelFriendRequestView(APIView):
     """Отменить отправленную заявку"""
 
     def delete(self, request, *args, **kwargs):
@@ -108,14 +109,35 @@ class RemoveFriendView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class FriendStatusView(generics.RetrieveUpdateDestroyAPIView):
-    """Получить статус дружбы"""
+class UserProfileView(APIView):
+    """Профиль пользователя"""
 
-    queryset = MyUser.objects.all()
-    serializer_class = FriendStatusSerializer
-    lookup_field = "pk"  # получаем инфо по id объекта
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        return context
+    def get(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        user_friends = MyUser.objects.filter(
+            Q(user_id_1__user_id_2=pk) | Q(user_id_2__user_id_1=pk)
+        )
+        user_profile = get_object_or_404(MyUser, id=pk).username
+        user_friends_serializer = UserProfileSerializer(user_friends, many=True)
+        own_user = self.request.user
+        friend_status = "Ничего"
+        if user_profile == str(own_user):
+            friend_status = "Это ваша страница :)"
+        elif (
+            Friends.objects.filter(
+                    (Q(user_id_1=own_user.id) | Q(user_id_1=pk))
+                    & (Q(user_id_2=own_user.id) | Q(user_id_2=pk))
+            ).exists()
+        ):
+            friend_status = "Уже друзья"
+        elif own_user.sender.filter(recipient=pk).exists():
+            friend_status = "Исходящая заявка"
+        elif own_user.recipient.filter(sender=pk).exists():
+            friend_status = "Входящая заявка"
+        data = {
+            "id": pk,
+            "user_profile": user_profile,
+            "friend_status": friend_status,
+            "user_friends": user_friends_serializer.data
+        }
+        return Response(data=data, status=status.HTTP_200_OK)

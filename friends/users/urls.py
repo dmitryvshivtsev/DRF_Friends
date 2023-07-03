@@ -9,7 +9,7 @@ urlpatterns = [
     path("outcoming/", OutcomingRequestsView.as_view()),
     path("befriend/<int:pk>/", SendFriendRequestView.as_view()),
     path("accept/<int:pk>/", AcceptFriendRequestView.as_view()),
-    path("reject/<int:pk>/", RejectFriendRequestView.as_view()),
+    path("cancel/<int:pk>/", CancelFriendRequestView.as_view()),
     path("unfriend/<int:pk>/", RemoveFriendView.as_view()),
-    path("status/<int:pk>/", FriendStatusView.as_view()),
+    path("profile/<int:pk>/", UserProfileView.as_view()),
 ]
