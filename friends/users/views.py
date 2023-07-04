@@ -10,84 +10,73 @@ from django.db.models import Q
 
 class AllUsersView(generics.ListAPIView):
     """Список всех зарегестрированных пользователей"""
-
     queryset = MyUser.objects.all()
-    serializer_class = MyUserSerializer
+    serializer_class = UserSerializer
 
 
-class UserFriendsView(APIView):
+class UserFriendsView(generics.ListAPIView):
     """Список друзей"""
+    serializer_class = UserSerializer
 
-    def get(self, request):
-        user_id = MyUser.objects.get(id=request.user.id).id
+    def get_queryset(self):
+        user_id = self.request.user.id
         friends = MyUser.objects.filter(
             Q(user_id_1__user_id_2=user_id) | Q(user_id_2__user_id_1=user_id)
         )
-        all_friends = MyUserSerializer(friends, many=True)
-        data = {"all_friends": all_friends.data}
-        return Response(data, status=status.HTTP_200_OK)
+        return friends
 
 
-class IncomingRequestsView(APIView):
+class IncomingRequestsView(generics.ListAPIView):
     """Просмотреть входящие заявки"""
+    serializer_class = FriendRequestSerializer
 
-    def get(self, request):
-        incoming = FriendRequest.objects.filter(recipient=request.user.id)
-        incoming_serializer = FriendRequestSerializer(incoming, many=True)
-        data = {"incoming": incoming_serializer.data}
-        return Response(data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        incoming = FriendRequest.objects.filter(recipient=self.request.user.id)
+        return incoming
 
 
-class OutcomingRequestsView(APIView):
+class OutcomingRequestsView(generics.ListAPIView):
     """Просмотреть исходящие заявки"""
+    serializer_class = FriendRequestSerializer
 
-    def get(self, request):
-        outcoming = FriendRequest.objects.filter(sender=request.user)
-        outcoming_serializer = FriendRequestSerializer(outcoming, many=True)
-        data = {"outcoming": outcoming_serializer.data}
-        return Response(data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        outcoming = FriendRequest.objects.filter(sender=self.request.user.id)
+        return outcoming
 
 
-class SendFriendRequestView(APIView):
+class SendFriendRequestView(generics.CreateAPIView):
     """Отправить заявку в друзья"""
 
-    def post(self, request, *args, **kwargs):
-        pk = kwargs["pk"]
-        data = {"sender_id": request.user.id, "recipient_id": pk}
-        serializer = FriendRequestSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_200_OK)
+    serializer_class = FriendRequestSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(sender_id=self.request.user.id, recipient_id=self.kwargs["pk"])
 
 
-class AcceptFriendRequestView(APIView):
+class AcceptFriendRequestView(generics.CreateAPIView):
     """Принять заявку в друзья"""
 
-    def post(self, request, *args, **kwargs):
-        pk = kwargs["pk"]
-        friend_request = FriendRequest.objects.filter(sender_id=pk).first()
-        if friend_request:
-            # create new entry in the Friends database
-            sender = friend_request.sender
-            recipient = friend_request.recipient
-            Friends.objects.create(user_id_1=sender, user_id_2=recipient)
-            return Response(status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    serializer_class = FriendsSerializer
+
+    def perform_create(self, serializer):
+        friend_request = FriendRequest.objects.filter(sender_id=self.kwargs["pk"]).first()
+        serializer.save(user_id_1=friend_request.sender, user_id_2=friend_request.recipient)
+        friend_request.delete()
 
 
-class CancelFriendRequestView(APIView):
+class CancelFriendRequestView(generics.RetrieveDestroyAPIView):
     """Отменить отправленную заявку"""
 
-    def delete(self, request, *args, **kwargs):
-        pk = kwargs["pk"]
-        recipient = pk
-        sender = MyUser.objects.get(id=request.user.id).id
+    queryset = FriendRequest.objects.all()
+    serializer_class = FriendRequestSerializer
+
+    def perform_destroy(self, instance):
+        sender = self.request.user.id
+        recipient = instance.recipient_id
         remove_entry = FriendRequest.objects.filter(
-            Q(sender_id=sender) & Q(recipient_id=recipient)
+            sender_id=sender, recipient_id=recipient
         )
         remove_entry.delete()
-        return Response(status=status.HTTP_200_OK)
 
 
 class RemoveFriendView(APIView):
@@ -113,12 +102,12 @@ class UserProfileView(APIView):
     """Профиль пользователя"""
 
     def get(self, request, *args, **kwargs):
-        pk = kwargs["pk"]
+        pk = kwargs.get("pk", None)
         user_friends = MyUser.objects.filter(
             Q(user_id_1__user_id_2=pk) | Q(user_id_2__user_id_1=pk)
         )
         user_profile = get_object_or_404(MyUser, id=pk).username
-        user_friends_serializer = UserProfileSerializer(user_friends, many=True)
+        user_friends_serializer = UserSerializer(user_friends, many=True)
         own_user = self.request.user
         friend_status = "Ничего"
         if user_profile == str(own_user):

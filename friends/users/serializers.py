@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.models import MyUser, FriendRequest, Friends
 
 
-class MyUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ("id", "username")
@@ -20,12 +20,4 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         model = FriendRequest
         fields = ("sender", "recipient")
 
-    def create(self, validated_data):
-        return FriendRequest.objects.get_or_create(**validated_data)
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MyUser
-        fields = ("id", "username")
 
