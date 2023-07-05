@@ -10,12 +10,14 @@ from django.db.models import Q
 
 class AllUsersView(generics.ListAPIView):
     """Список всех зарегестрированных пользователей"""
+
     queryset = MyUser.objects.all()
     serializer_class = UserSerializer
 
 
 class UserFriendsView(generics.ListAPIView):
     """Список друзей"""
+
     serializer_class = UserSerializer
 
     def get_queryset(self):
@@ -28,6 +30,7 @@ class UserFriendsView(generics.ListAPIView):
 
 class IncomingRequestsView(generics.ListAPIView):
     """Просмотреть входящие заявки"""
+
     serializer_class = FriendRequestSerializer
 
     def get_queryset(self):
@@ -37,6 +40,7 @@ class IncomingRequestsView(generics.ListAPIView):
 
 class OutcomingRequestsView(generics.ListAPIView):
     """Просмотреть исходящие заявки"""
+
     serializer_class = FriendRequestSerializer
 
     def get_queryset(self):
@@ -59,8 +63,12 @@ class AcceptFriendRequestView(generics.CreateAPIView):
     serializer_class = FriendsSerializer
 
     def perform_create(self, serializer):
-        friend_request = FriendRequest.objects.filter(sender_id=self.kwargs["pk"]).first()
-        serializer.save(user_id_1=friend_request.sender, user_id_2=friend_request.recipient)
+        friend_request = FriendRequest.objects.filter(
+            sender_id=self.kwargs["pk"]
+        ).first()
+        serializer.save(
+            user_id_1=friend_request.sender, user_id_2=friend_request.recipient
+        )
         friend_request.delete()
 
 
@@ -112,12 +120,10 @@ class UserProfileView(APIView):
         friend_status = "Ничего"
         if user_profile == str(own_user):
             friend_status = "Это ваша страница :)"
-        elif (
-            Friends.objects.filter(
-                    (Q(user_id_1=own_user.id) | Q(user_id_1=pk))
-                    & (Q(user_id_2=own_user.id) | Q(user_id_2=pk))
-            ).exists()
-        ):
+        elif Friends.objects.filter(
+            (Q(user_id_1=own_user.id) | Q(user_id_1=pk))
+            & (Q(user_id_2=own_user.id) | Q(user_id_2=pk))
+        ).exists():
             friend_status = "Уже друзья"
         elif own_user.sender.filter(recipient=pk).exists():
             friend_status = "Исходящая заявка"
@@ -127,6 +133,6 @@ class UserProfileView(APIView):
             "id": pk,
             "user_profile": user_profile,
             "friend_status": friend_status,
-            "user_friends": user_friends_serializer.data
+            "user_friends": user_friends_serializer.data,
         }
         return Response(data=data, status=status.HTTP_200_OK)
