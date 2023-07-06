@@ -7,3 +7,6 @@ docker:
 clean_docker:
 	docker stop dj_friends
 	docker rm dj_friends
+
+style:
+	black .
