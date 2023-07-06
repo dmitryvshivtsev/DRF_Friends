@@ -72,19 +72,18 @@ class AcceptFriendRequestView(generics.CreateAPIView):
         friend_request.delete()
 
 
-class CancelFriendRequestView(generics.RetrieveDestroyAPIView):
+class CancelFriendRequestView(APIView):
     """Отменить отправленную заявку"""
 
-    queryset = FriendRequest.objects.all()
-    serializer_class = FriendRequestSerializer
-
-    def perform_destroy(self, instance):
-        sender = self.request.user.id
-        recipient = instance.recipient_id
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs["pk"]
+        recipient = pk
+        sender = MyUser.objects.get(id=request.user.id).id
         remove_entry = FriendRequest.objects.filter(
-            sender_id=sender, recipient_id=recipient
+            Q(sender_id=sender) & Q(recipient_id=recipient)
         )
         remove_entry.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 class RemoveFriendView(APIView):
